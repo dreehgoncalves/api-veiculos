@@ -143,7 +143,7 @@ srv.patch("/alterarporid/:id", (req, res, next) => {
   banco.getConnection((error, conn) => {
     if (error) {
       return res.status(500).send({
-        messagem: "Erro no servidor",
+        messagem: "Erro no servidor ",
         detalhes: error,
       });
     }
