@@ -29,7 +29,7 @@ srv.get("/conectar", (req, res) => {
 });
 
 srv.get("/veiculos", (req, res) => {
-  const QUERY = `SELECT * FROM veiculos ORDER BY marca`;
+  const SQL = `SELECT * FROM veiculos ORDER BY marca`;
 
   banco.getConnection((error, conn) => {
     if (error) {
@@ -38,7 +38,7 @@ srv.get("/veiculos", (req, res) => {
       });
     }
 
-    conn.query(QUERY, (error, resultado) => {
+    conn.query(SQL, (error, resultado) => {
       conn.release();
 
       if (error) {
@@ -56,7 +56,7 @@ srv.get("/veiculos", (req, res) => {
 
 srv.get("/pormarca/:marca", (req, res) => {
   let marca = req.params.marca;
-  const QUERY = `SELECT * FROM veiculos WHERE marca LIKE '%${marca}%' ORDER BY modelo`;
+  const SQL = `SELECT * FROM veiculos WHERE marca LIKE '%${marca}%' ORDER BY modelo`;
 
   banco.getConnection((error, conn) => {
     if (error) {
@@ -65,7 +65,7 @@ srv.get("/pormarca/:marca", (req, res) => {
       });
     }
 
-    conn.query(QUERY, (error, resultado) => {
+    conn.query(SQL, (error, resultado) => {
       conn.release();
 
       if (error) {
@@ -83,7 +83,7 @@ srv.get("/pormarca/:marca", (req, res) => {
 
 srv.get("/porproprietario/:proprietario", (req, res) => {
   let proprietario = req.params.proprietario;
-  const QUERY = `SELECT * FROM veiculos WHERE proprietario LIKE '%${proprietario}%'`;
+  const SQL = `SELECT * FROM veiculos WHERE proprietario LIKE '%${proprietario}%'`;
 
   banco.getConnection((error, conn) => {
     if (error) {
@@ -92,7 +92,7 @@ srv.get("/porproprietario/:proprietario", (req, res) => {
       });
     }
 
-    conn.query(QUERY, (error, resultado) => {
+    conn.query(SQL, (error, resultado) => {
       conn.release();
 
       if (error) {
@@ -110,7 +110,7 @@ srv.get("/porproprietario/:proprietario", (req, res) => {
 
 srv.get("/porpreco/:preco", (req, res) => {
   let preco = req.params.preco;
-  const QUERY = `SELECT * FROM veiculos WHERE preco_venda >= '${preco}'`;
+  const SQL = `SELECT * FROM veiculos WHERE preco_venda >= '${preco}'`;
 
   banco.getConnection((error, conn) => {
     if (error) {
@@ -119,7 +119,7 @@ srv.get("/porpreco/:preco", (req, res) => {
       });
     }
 
-    conn.query(QUERY, (error, resultado) => {
+    conn.query(SQL, (error, resultado) => {
       conn.release();
 
       if (error) {
@@ -135,10 +135,115 @@ srv.get("/porpreco/:preco", (req, res) => {
   });
 });
 
+srv.delete("/delveiculo/pormarca/:marca", (req, res) => {
+  let marca = req.params.marca;
+  const SQL = `DELETE FROM veiculos WHERE marca LIKE '%${marca}%'`;
+
+  banco.getConnection((error, conn) => {
+    if (error) {
+      return res.status(500).send({
+        Erro: "Não foi possível atender à solicitação",
+      });
+    }
+
+    conn.query(SQL, (error, resultado) => {
+      conn.release();
+
+      if (error) {
+        return res.status(500).send({
+          Erro: "Não foi possível atender à solicitação",
+          Detalhes: error,
+        });
+      }
+
+      if (resultado.affectedRows > 1) {
+        return res.status(200).send({
+          mensagem: "Veículos excluídos com sucesso!",
+        });
+      } else if (resultado.affectedRows > 0) {
+        return res.status(200).send({
+          Mensagem: "Veículos excluídos com sucesso!",
+        });
+      } else {
+        return res.status(200).send({
+          Mensagem: "Veículo não excluído!",
+        });
+      }
+    });
+  });
+});
+
+srv.delete("/delveiculo/modelo/:modelo/preco/:preco", (req, res) => {
+  let modelo = req.params.modelo;
+  let preco = req.params.preco;
+  const SQL = `DELETE FROM veiculos WHERE modelo LIKE '%${modelo}%' AND preco_venda >= ${preco}`;
+
+  banco.getConnection((error, conn) => {
+    if (error) {
+      return res.status(500).send({
+        Erro: "Não foi possível atender à solicitação",
+      });
+    }
+
+    conn.query(SQL, (error, resultado) => {
+      conn.release();
+
+      if (error) {
+        return res.status(500).send({
+          Erro: "Não foi possível atender à solicitação",
+          Detalhes: error,
+        });
+      }
+
+      if (resultado.affectedRows > 1) {
+        return res.status(200).send({
+          mensagem: "Veículos excluídos com sucesso!",
+        });
+      } else if (resultado.affectedRows > 0) {
+        return res.status(200).send({
+          Mensagem: "Veículos excluídos com sucesso!",
+        });
+      } else {
+        return res.status(200).send({
+          Mensagem: "Veículo não excluído!",
+        });
+      }
+    });
+  });
+});
+
+srv.delete("/delveiculo/porid/:id", (req, res) => {
+  let id = req.params.id;
+  const SQL = `DELETE FROM veiculos WHERE id = '${id}'`;
+
+  banco.getConnection((error, conn) => {
+    if (error) {
+      return res.status(500).send({
+        Erro: "Não foi possível atender à solicitação",
+      });
+    }
+
+    conn.query(SQL, (error, resultado) => {
+      conn.release();
+
+      if (error) {
+        return res.status(500).send({
+          Erro: "Não foi possível atender à solicitação",
+          Detalhes: error,
+        });
+      }
+
+      return res.status(200).send({
+        Mensagem: "Deletado com sucesso",
+      });
+    });
+  });
+});
+
 srv.patch("/alterarporid/:id", (req, res, next) => {
   let id = req.params.id;
   let body = req.body;
-  const QUERY = `UPDATE veiculos SET modelo = '${body.modelo}', marca = '${body.marca}', preco_venda = '${body.preco_venda}', proprietario = '${body.proprietario}' WHERE id = ${id}`;
+  const SQL = `UPDATE veiculos SET modelo = '${body.modelo}', marca = '${body.marca}', preco_venda = '${body.preco_venda}', proprietario = '${body.proprietario}' WHERE id = ${id}`;
 
   banco.getConnection((error, conn) => {
     if (error) {
@@ -147,7 +252,7 @@ srv.patch("/alterarporid/:id", (req, res, next) => {
         detalhes: error,
       });
     }
-    conn.query(QUERY, (error, resultado) => {
+    conn.query(SQL, (error, resultado) => {
       conn.release();
 
       if (error) {
@@ -174,7 +279,7 @@ srv.post("/cadveiculo", (req, res) => {
       });
     }
 
-    con.query(query, (erro, res) => {
+    con.query(query, (erro, resultado) => {
       con.release();
 
       if (erro) {
